@@ -12,17 +12,18 @@
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Mono:wght@300;400;500&display=swap"
     rel="stylesheet">
   <style>
-    /* ── Dark Tech palette (matches app) ───────────────────── */
+    /* ── Claude palette ─────────────────────────────────────── */
     :root {
-      --bg: #050a14;
-      --surface: rgba(255, 255, 255, 0.03);
-      --glass: rgba(255, 255, 255, 0.07);
-      --border: rgba(255, 255, 255, 0.1);
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --accent: #4ade80;
-      --accent-glow: rgba(74, 222, 128, 0.2);
-      
+      --claude-bg: #FAF9F7;
+      --claude-surface: #F0EDE8;
+      --claude-deep: #E8E3DB;
+      --claude-text: #1A1714;
+      --claude-muted: #6B6560;
+      --claude-orange: #CC785C;
+      --claude-orange2: #B5604A;
+      --claude-warm: #D4A574;
+      --claude-border: #D9D3CA;
+      --claude-shadow: rgba(26, 23, 20, 0.08);
       --mono: 'DM Mono', monospace;
       --serif: 'Playfair Display', Georgia, serif;
       --body: 'Lora', Georgia, serif;
@@ -38,22 +39,15 @@
 
     html {
       scroll-behavior: smooth;
-      overflow: hidden; /* Prevent vertical scrolling */
     }
 
     body {
-      background: var(--bg);
-      color: var(--text);
+      background: var(--claude-bg);
+      color: var(--claude-text);
       font-family: var(--body);
       font-size: 16px;
       line-height: 1.7;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      display: flex;
-      flex-direction: row;
-      width: 100vw;
-      height: 100vh;
-      -webkit-overflow-scrolling: touch;
+      overflow-x: hidden;
     }
 
     /* ── Custom Cursor ─────────────────────────────────────── */
@@ -65,12 +59,12 @@
       position: fixed;
       width: 10px;
       height: 10px;
-      background: var(--accent);
+      background: var(--claude-orange);
       border-radius: 50%;
       pointer-events: none;
       z-index: 9999;
       transition: transform 0.15s ease;
-      mix-blend-mode: screen;
+      mix-blend-mode: multiply;
     }
 
     .cursor-ring {
@@ -156,12 +150,12 @@
     }
 
     .nav-links a:hover {
-      color: var(--accent);
+      color: var(--claude-orange);
     }
 
     .nav-badge {
-      background: var(--accent);
-      color: var(--bg);
+      background: var(--claude-orange);
+      color: white;
       font-family: var(--mono);
       font-size: 10px;
       padding: 4px 10px;
@@ -169,17 +163,14 @@
       letter-spacing: 0.05em;
     }
 
-    /* ── Hero & Slides ──────────────────────────────────── */
-    section {
-      width: 100vw;
-      height: 100vh;
-      flex-shrink: 0;
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
+    /* ── Hero ──────────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
+      align-items: center;
       justify-content: center;
-      padding: 100px 8vw;
+      padding: 120px 48px 80px;
       position: relative;
       overflow: hidden;
     }
@@ -195,7 +186,7 @@
     .hc1 {
       width: 700px;
       height: 700px;
-      background: var(--accent);
+      background: var(--claude-orange);
       top: -200px;
       right: -200px;
     }
@@ -203,7 +194,7 @@
     .hc2 {
       width: 500px;
       height: 500px;
-      background: var(--accent);
+      background: var(--claude-warm);
       bottom: -150px;
       left: -150px;
     }
@@ -211,7 +202,7 @@
     .hc3 {
       width: 200px;
       height: 200px;
-      border: 2px solid var(--accent);
+      border: 2px solid var(--claude-orange);
       top: 200px;
       left: 100px;
       opacity: 0.12;
@@ -228,7 +219,7 @@
       font-family: var(--mono);
       font-size: 11px;
       letter-spacing: 0.15em;
-      color: var(--accent);
+      color: var(--claude-orange);
       text-transform: uppercase;
       margin-bottom: 24px;
       opacity: 0;
@@ -244,7 +235,7 @@
       display: block;
       width: 32px;
       height: 1px;
-      background: var(--accent);
+      background: var(--claude-orange);
     }
 
     .hero-title {
@@ -261,7 +252,7 @@
 
     .hero-title em {
       font-style: italic;
-      color: var(--accent);
+      color: var(--claude-orange);
     }
 
     .hero-subtitle {
@@ -287,13 +278,13 @@
     }
 
     .pill {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: var(--claude-surface);
+      border: 1px solid var(--claude-border);
       padding: 6px 14px;
       border-radius: 20px;
       font-family: var(--mono);
       font-size: 11px;
-      color: var(--muted);
+      color: var(--claude-muted);
       letter-spacing: 0.04em;
     }
 
@@ -311,7 +302,7 @@
     .scroll-line {
       width: 1px;
       height: 48px;
-      background: linear-gradient(to bottom, var(--accent), transparent);
+      background: linear-gradient(to bottom, var(--claude-orange), transparent);
       animation: scrollPulse 2s ease-in-out infinite;
     }
 
@@ -369,7 +360,7 @@
       font-size: 10px;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: var(--accent);
+      color: var(--claude-orange);
       margin-bottom: 16px;
     }
 
@@ -384,14 +375,14 @@
 
     .section-title em {
       font-style: italic;
-      color: var(--accent);
+      color: var(--claude-orange);
     }
 
     /* ── Divider ────────────────────────────────────────────── */
     .divider {
       width: 100%;
       height: 1px;
-      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      background: linear-gradient(90deg, transparent, var(--claude-border), transparent);
       margin: 0 auto;
     }
 
@@ -405,27 +396,27 @@
     }
 
     .problem-text p {
-      color: var(--muted);
+      color: var(--claude-muted);
       margin-bottom: 20px;
       font-size: 17px;
       line-height: 1.8;
     }
 
     .problem-text strong {
-      color: var(--text);
+      color: var(--claude-text);
       font-weight: 500;
     }
 
     .problem-quote {
-      background: var(--surface);
-      border-left: 3px solid var(--accent);
+      background: var(--claude-surface);
+      border-left: 3px solid var(--claude-orange);
       padding: 28px 32px;
       border-radius: 0 12px 12px 0;
       font-family: var(--serif);
       font-style: italic;
       font-size: 20px;
       line-height: 1.6;
-      color: var(--text);
+      color: var(--claude-text);
       margin-top: 32px;
       position: relative;
     }
@@ -436,7 +427,7 @@
       top: 8px;
       left: 24px;
       font-size: 72px;
-      color: var(--accent);
+      color: var(--claude-orange);
       opacity: 0.2;
       font-family: var(--serif);
       line-height: 1;
@@ -449,8 +440,8 @@
     }
 
     .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: var(--claude-surface);
+      border: 1px solid var(--claude-border);
       border-radius: 12px;
       padding: 24px 28px;
       display: flex;
@@ -461,7 +452,7 @@
 
     .stat-card:hover {
       transform: translateX(6px);
-      box-shadow: -4px 0 0 var(--accent), 4px 8px 24px rgba(0,0,0,0.5);
+      box-shadow: -4px 0 0 var(--claude-orange), 4px 8px 24px var(--claude-shadow);
     }
 
     .stat-icon {
@@ -475,20 +466,20 @@
       font-family: var(--serif);
       font-size: 28px;
       font-weight: 700;
-      color: var(--accent);
+      color: var(--claude-orange);
       line-height: 1;
     }
 
     .stat-desc {
       font-size: 13px;
-      color: var(--muted);
+      color: var(--claude-muted);
       margin-top: 4px;
       font-family: var(--mono);
     }
 
     /* ── How It Works ─────────────────────────────────────── */
     .how-section {
-      background: var(--bg);
+      background: var(--claude-surface);
     }
 
     .how-section>div {
@@ -502,15 +493,15 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 2px;
       margin-top: 56px;
-      border: 1px solid var(--border);
+      border: 1px solid var(--claude-border);
       border-radius: 16px;
       overflow: hidden;
     }
 
     .step {
-      background: var(--surface);
+      background: var(--claude-bg);
       padding: 36px 32px;
-      border-right: 1px solid var(--border);
+      border-right: 1px solid var(--claude-border);
       position: relative;
       transition: background 0.25s;
     }
@@ -520,21 +511,21 @@
     }
 
     .step:hover {
-      background: rgba(255, 255, 255, 0.05);
+      background: white;
     }
 
     .step-num {
       font-family: var(--serif);
       font-size: 64px;
       font-weight: 700;
-      color: var(--border);
+      color: var(--claude-border);
       line-height: 1;
       margin-bottom: 16px;
       transition: color 0.25s;
     }
 
     .step:hover .step-num {
-      color: var(--accent);
+      color: var(--claude-orange);
       opacity: 0.3;
     }
 
@@ -552,7 +543,7 @@
 
     .step-desc {
       font-size: 14px;
-      color: var(--muted);
+      color: var(--claude-muted);
       line-height: 1.7;
     }
 
@@ -565,8 +556,8 @@
     }
 
     .sensor-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: var(--claude-bg);
+      border: 1px solid var(--claude-border);
       border-radius: 14px;
       padding: 28px;
       position: relative;
@@ -578,14 +569,14 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, transparent 60%, var(--accent-glow));
+      background: linear-gradient(135deg, transparent 60%, rgba(204, 120, 92, 0.06));
       pointer-events: none;
     }
 
     .sensor-card:hover {
-      border-color: var(--accent);
+      border-color: var(--claude-orange);
       transform: translateY(-4px);
-      box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+      box-shadow: 0 16px 40px var(--claude-shadow);
     }
 
     .sensor-type {
@@ -607,13 +598,13 @@
     .sensor-pin {
       font-family: var(--mono);
       font-size: 11px;
-      color: var(--muted);
+      color: var(--claude-muted);
       margin-bottom: 12px;
     }
 
     .sensor-desc {
       font-size: 13px;
-      color: var(--muted);
+      color: var(--claude-muted);
       line-height: 1.65;
     }
 
@@ -626,11 +617,11 @@
     }
 
     .sensor-card.actuator {
-      background: var(--glass);
+      background: var(--claude-surface);
     }
 
     .sensor-card.actuator .sensor-type {
-      color: var(--accent);
+      color: var(--claude-warm);
     }
 
     /* ── Architecture Diagram ─────────────────────────────── */
@@ -642,8 +633,8 @@
 
     .arch-diagram {
       margin-top: 56px;
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: var(--claude-surface);
+      border: 1px solid var(--claude-border);
       border-radius: 20px;
       padding: 48px;
       display: grid;
@@ -663,25 +654,25 @@
       font-size: 9px;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: var(--claude-muted);
       text-align: center;
       margin-bottom: 8px;
     }
 
     .arch-chip {
-      background: var(--bg);
-      border: 1px solid var(--border);
+      background: var(--claude-bg);
+      border: 1px solid var(--claude-border);
       border-radius: 8px;
       padding: 10px 14px;
       font-size: 12px;
       font-family: var(--mono);
-      color: var(--text);
+      color: var(--claude-text);
       text-align: center;
       transition: border-color 0.2s;
     }
 
     .arch-chip:hover {
-      border-color: var(--accent);
+      border-color: var(--claude-orange);
     }
 
     .arch-center {
@@ -692,12 +683,12 @@
     }
 
     .arch-esp {
-      background: var(--accent);
-      color: var(--bg);
+      background: var(--claude-orange);
+      color: white;
       border-radius: 16px;
       padding: 28px 40px;
       text-align: center;
-      box-shadow: 0 12px 40px var(--accent-glow);
+      box-shadow: 0 12px 40px rgba(204, 120, 92, 0.3);
     }
 
     .arch-esp-title {
@@ -721,26 +712,26 @@
     }
 
     .cloud-chip {
-      background: var(--bg);
-      border: 1px solid var(--border);
+      background: var(--claude-bg);
+      border: 1px solid var(--claude-border);
       border-radius: 24px;
       padding: 8px 16px;
       font-family: var(--mono);
       font-size: 11px;
-      color: var(--muted);
+      color: var(--claude-muted);
       display: flex;
       align-items: center;
       gap: 6px;
     }
 
     .cloud-chip span {
-      color: var(--accent);
+      color: var(--claude-orange);
     }
 
     /* ── Comfort Score Section ──────────────────────────────── */
     .comfort-section {
-      background: var(--bg);
-      color: var(--text);
+      background: var(--claude-text);
+      color: var(--claude-bg);
       padding: 100px 0;
     }
 
@@ -755,33 +746,33 @@
     }
 
     .comfort-section .section-eyebrow {
-      color: var(--accent);
+      color: var(--claude-warm);
     }
 
     .comfort-section .section-title {
-      color: var(--text);
+      color: var(--claude-bg);
     }
 
     .comfort-section p {
-      color: var(--muted);
+      color: rgba(250, 249, 247, 0.65);
       font-size: 16px;
       margin-bottom: 20px;
     }
 
     .formula-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: rgba(250, 249, 247, 0.06);
+      border: 1px solid rgba(250, 249, 247, 0.12);
       border-radius: 12px;
       padding: 24px;
       font-family: var(--mono);
       font-size: 13px;
       line-height: 2.2;
-      color: var(--muted);
+      color: rgba(250, 249, 247, 0.8);
       margin-top: 24px;
     }
 
     .formula-box .highlight {
-      color: var(--accent);
+      color: var(--claude-warm);
       font-weight: 500;
     }
 
@@ -815,14 +806,14 @@
       font-family: var(--serif);
       font-size: 56px;
       font-weight: 700;
-      color: var(--accent);
+      color: var(--claude-warm);
     }
 
     .big-score-num .lbl {
       font-family: var(--mono);
       font-size: 9px;
       letter-spacing: 0.1em;
-      color: var(--muted);
+      color: rgba(250, 249, 247, 0.4);
     }
 
     .score-breakdown {
@@ -878,32 +869,39 @@
     .features-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
+      gap: 2px;
       margin-top: 56px;
       border-radius: 16px;
       overflow: hidden;
+      border: 1px solid var(--claude-border);
     }
 
     .feature {
       padding: 40px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      transition: all 0.25s;
+      background: var(--claude-bg);
+      border-right: 1px solid var(--claude-border);
+      border-bottom: 1px solid var(--claude-border);
+      transition: background 0.25s;
       position: relative;
     }
 
+    .feature:nth-child(2n) {
+      border-right: none;
+    }
+
+    .feature:nth-last-child(-n+2) {
+      border-bottom: none;
+    }
+
     .feature:hover {
-      background: var(--glass);
-      border-color: var(--accent);
-      transform: translateY(-5px);
+      background: var(--claude-surface);
     }
 
     .feature-num {
       font-family: var(--mono);
       font-size: 10px;
       letter-spacing: 0.1em;
-      color: var(--accent);
+      color: var(--claude-orange);
       margin-bottom: 16px;
     }
 
@@ -918,18 +916,17 @@
       font-weight: 600;
       margin-bottom: 10px;
       letter-spacing: -0.01em;
-      color: var(--text);
     }
 
     .feature-desc {
       font-size: 14px;
-      color: var(--muted);
+      color: var(--claude-muted);
       line-height: 1.75;
     }
 
     /* ── Code peek ─────────────────────────────────────────── */
     .code-section {
-      background: var(--bg);
+      background: var(--claude-surface);
       padding: 100px 0;
     }
 
@@ -947,8 +944,7 @@
     }
 
     .code-block {
-      background: #0d1117;
-      border: 1px solid var(--border);
+      background: var(--claude-text);
       border-radius: 14px;
       overflow: hidden;
     }
@@ -1015,7 +1011,7 @@
     }
 
     .num {
-      color: var(--accent);
+      color: var(--claude-warm);
     }
 
     .type {
@@ -1031,8 +1027,8 @@
     }
 
     .submitted-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: var(--claude-surface);
+      border: 1px solid var(--claude-border);
       border-radius: 20px;
       padding: 48px;
       margin-top: 40px;
@@ -1044,7 +1040,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, transparent, var(--accent-glow));
+      background: linear-gradient(135deg, transparent, rgba(204, 120, 92, 0.04));
       pointer-events: none;
     }
 
@@ -1066,13 +1062,13 @@
       width: 52px;
       height: 52px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), #22c55e);
+      background: linear-gradient(135deg, var(--claude-orange), var(--claude-warm));
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: var(--serif);
       font-size: 20px;
-      color: var(--bg);
+      color: white;
       font-weight: 700;
     }
 
@@ -1085,14 +1081,14 @@
     .member-roll {
       font-family: var(--mono);
       font-size: 10px;
-      color: var(--muted);
+      color: var(--claude-muted);
       letter-spacing: 0.05em;
     }
 
     .course-tag {
       display: inline-block;
-      background: var(--accent);
-      color: var(--bg);
+      background: var(--claude-orange);
+      color: white;
       font-family: var(--mono);
       font-size: 11px;
       padding: 6px 16px;
@@ -1103,14 +1099,12 @@
 
     /* ── Footer ────────────────────────────────────────────── */
     footer {
-      border-top: 1px solid var(--border);
+      border-top: 1px solid var(--claude-border);
       padding: 32px 48px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: var(--bg);
-      scroll-snap-align: end;
-      width: 100vw;
+      background: var(--claude-surface);
     }
 
     .footer-brand {
@@ -1128,34 +1122,8 @@
     .footer-right {
       font-family: var(--mono);
       font-size: 11px;
-      color: var(--muted);
+      color: var(--claude-muted);
       letter-spacing: 0.03em;
-    }
-
-    /* ── Slide dots ────────────────────────────────────────── */
-    .slide-dots {
-      position: fixed;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 12px;
-      z-index: 1000;
-    }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--border);
-      transition: all 0.3s;
-      cursor: pointer;
-    }
-
-    .dot.active {
-      background: var(--accent);
-      transform: scale(1.5);
-      box-shadow: 0 0 10px var(--accent-glow);
     }
 
     /* ── Scroll animations ─────────────────────────────────── */
@@ -1274,17 +1242,12 @@
     <h1 class="hero-title">Not just how many.<br><em>How good.</em></h1>
     <p class="hero-subtitle">A smart environment monitoring system that tells you whether the library is worth visiting
       — before you leave your room.</p>
-    <div style="margin-top:32px; font-family:var(--mono); font-size:12px;">
-      <a href="https://library-monitor-65ad9.web.app" target="_blank" style="color:var(--accent); text-decoration:none; border:1.5px solid var(--accent); padding:12px 28px; border-radius:30px; transition:all 0.3s; font-weight:600; box-shadow: 0 0 15px var(--accent-glow);" onmouseover="this.style.background='var(--accent)'; this.style.color='var(--bg)'; this.style.boxShadow='0 0 30px var(--accent-glow)'" onmouseout="this.style.background='transparent'; this.style.color='var(--accent)'; this.style.boxShadow='0 0 15px var(--accent-glow)'">
-        LAUNCH LIVE DASHBOARD →
-      </a>
-    </div>
     <div class="hero-pills">
       <span class="pill">ESP32 DevKit v1</span>
       <span class="pill">DHT22</span>
       <span class="pill">HC-SR04 ×2</span>
       <span class="pill">PIR · MIC · MQ-2</span>
-      <span class="pill">Firebase Cloud</span>
+      <span class="pill">Blynk IoT</span>
       <span class="pill">6 Parameters</span>
       <span class="pill">Comfort Score</span>
     </div>
@@ -1294,6 +1257,7 @@
     </div>
   </section>
 
+  <div class="divider"></div>
 
   <!-- Problem -->
   <section id="problem">
@@ -1345,6 +1309,7 @@
     </div>
   </section>
 
+  <div class="divider"></div>
 
   <!-- How It Works -->
   <div class="how-section" id="how">
@@ -1370,13 +1335,14 @@
           <div class="step-num">03</div>
           <div class="step-icon">☁️</div>
           <div class="step-title">Broadcast</div>
-          <div class="step-desc">Nine JSON keys are pushed to Firebase Cloud every 5 seconds. LEDs and buzzer update
-            locally. The web dashboard receives live data via WebSocket Stream.</div>
+          <div class="step-desc">Nine virtual pins are pushed to Blynk IoT every 3 seconds. LEDs and buzzer update
+            locally. The web dashboard receives live data via Server-Sent Events.</div>
         </div>
       </div>
     </div>
   </div>
 
+  <div class="divider"></div>
 
   <!-- Sensors -->
   <section id="sensors">
@@ -1430,15 +1396,16 @@
         <div class="sensor-name">LED + Buzzer</div>
         <div class="sensor-pin">GPIO 18, 19, 23 · Digital</div>
         <div class="sensor-desc">Green LED = conditions acceptable. Red LED = capacity reached or poor air. Buzzer = gas
-          threshold breach or crowd + motion event. All three also controllable remotely via the custom PWA Dashboard.</div>
+          threshold breach or crowd + motion event. All three also controllable remotely via Blynk app.</div>
         <div class="sensor-icon">🚦</div>
       </div>
     </div>
   </section>
 
+  <div class="divider"></div>
 
   <!-- Architecture -->
-  <section id="architecture">
+  <div class="arch-section" id="architecture">
     <p class="section-eyebrow reveal">Architecture</p>
     <h2 class="section-title reveal">One chip. <em>Complete pipeline.</em></h2>
     <div class="arch-diagram reveal">
@@ -1457,8 +1424,8 @@
           <div class="arch-esp-sub">DUAL CORE · 240MHz · WiFi</div>
         </div>
         <div class="arch-cloud">
-          <div class="cloud-chip"><span>☁</span> Firebase RD</div>
-          <div class="cloud-chip"><span>⚡</span> WebSocket</div>
+          <div class="cloud-chip"><span>☁</span> Blynk IoT</div>
+          <div class="cloud-chip"><span>⚡</span> SSE Bridge</div>
           <div class="cloud-chip"><span>🌐</span> Dashboard</div>
         </div>
       </div>
@@ -1468,30 +1435,13 @@
         <div class="arch-chip">🔴 LED Red</div>
         <div class="arch-chip">🔔 Buzzer</div>
         <div class="arch-col-title" style="margin-top:12px;">Cloud Output</div>
-        <div class="arch-chip">📱 Mobile PWA</div>
+        <div class="arch-chip">📱 Blynk App</div>
         <div class="arch-chip">💻 Web Dashboard</div>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- Implementation Gallery -->
-  <section id="gallery">
-    <p class="section-eyebrow reveal">Gallery</p>
-    <h2 class="section-title reveal">The <em>Build</em>.</h2>
-    <div class="code-grid reveal">
-      <div class="sensor-card">
-          <div class="sensor-type">HW-SETUP.IMG</div>
-          <div style="aspect-ratio:16/9; background:rgba(255,255,255,0.05); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-family:var(--mono); font-size:10px;">[HARDWARE SETUP PHOTO]</div>
-          <div class="sensor-name" style="font-size:16px; margin-top:12px;">Physical Assembly</div>
-      </div>
-      <div class="sensor-card">
-          <div class="sensor-type">DASHBOARD.UI</div>
-          <div style="aspect-ratio:16/9; background:rgba(255,255,255,0.05); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-family:var(--mono); font-size:10px;">[DASHBOARD UI PHOTO]</div>
-          <div class="sensor-name" style="font-size:16px; margin-top:12px;">Mobile Interface</div>
-      </div>
-    </div>
-  </section>
-
+  <div class="divider"></div>
 
   <!-- Comfort Score -->
   <div class="comfort-section" id="comfort">
@@ -1601,13 +1551,14 @@
         <div class="feature-num">04</div>
         <div class="feature-icon">⏱</div>
         <div class="feature-title">Non-Blocking Architecture</div>
-        <div class="feature-desc">Firebase Stream listeners handle all remote commands. No delay() anywhere in the
-          firmware. The loop() remains perpetually responsive to cloud commands — critical for real-time remote actuator
+        <div class="feature-desc">BlynkTimer schedules all sensor reads as callbacks. No delay() anywhere in the
+          firmware. The loop() remains perpetually responsive to Blynk commands — critical for real-time remote actuator
           control.</div>
       </div>
     </div>
   </div>
 
+  <div class="divider"></div>
 
   <!-- Code -->
   <div class="code-section" id="code">
@@ -1696,14 +1647,11 @@
   <!-- Footer -->
   <footer>
     <div class="footer-brand">
-      <div class="claude-logo" style="width:28px;height:28px;font-size:13px; background:var(--accent); color:var(--bg);">C</div>
+      <div class="claude-logo" style="width:28px;height:28px;font-size:13px;">C</div>
       <span>Library Monitoring System</span>
     </div>
     <div class="footer-right">NMIMS STME · MPMC PROJECT 2025–26</div>
   </footer>
-
-  <!-- Slide Nav Dots -->
-  <div class="slide-dots" id="slideDots"></div>
 
   <script>
     // ── Custom cursor ───────────────────────────────────────────
@@ -1739,27 +1687,16 @@
       });
     });
 
-    // ── Dot Navigation ─────────────────────────────────────────
-    const sections = document.querySelectorAll('section, footer');
-    const dotContainer = document.getElementById('slideDots');
-    
-    sections.forEach((_, i) => {
-      const dot = document.createElement('div');
-      dot.className = 'dot' + (i === 0 ? ' active' : '');
-      dot.onclick = () => {
-        sections[i].scrollIntoView({ behavior: 'smooth' });
-      };
-      dotContainer.appendChild(dot);
-    });
-
-    document.body.addEventListener('scroll', () => {
-      const index = Math.round(document.body.scrollLeft / window.innerWidth);
-      document.querySelectorAll('.dot').forEach((dot, i) => {
-        dot.classList.toggle('active', i === index);
+    // ── Scroll reveal ───────────────────────────────────────────
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
       });
-    }, { passive: true });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 
-    // ── Pre-existing Animations ─────────────────────────────────
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
     // ── Animated comfort ring ───────────────────────────────────
