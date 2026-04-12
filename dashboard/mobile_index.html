@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>LibraryOS Mobile</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a14;
+    --card: rgba(255, 255, 255, 0.05);
+    --border: rgba(255, 255, 255, 0.1);
+    --accent: #4ade80;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    padding: 20px;
+    padding-top: 60px; /* Space for status bar */
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* PWA background glow */
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(circle at top right, #1e3a8a 0%, transparent 50%),
+                radial-gradient(circle at bottom left, #064e3b 0%, transparent 50%);
+    opacity: 0.5; z-index: -1;
+  }
+
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px;
+  }
+  .logo h1 { font-size: 24px; font-weight: 700; letter-spacing: -1px; }
+  .status-pill {
+    background: rgba(74, 222, 128, 0.1);
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    color: var(--accent);
+    padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  }
+
+  /* Major Stat: Occupancy */
+  .hero-card {
+    background: var(--card);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .hero-label { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .hero-val { font-size: 64px; font-weight: 700; line-height: 1; }
+  .hero-sub { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  
+  .progress-bg { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 20px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #4ade80, #3b82f6); width: 0%; transition: width 0.8s ease; }
+
+  /* Grid Metrics */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .metric {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 16px; border-radius: 20px;
+  }
+  .m-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .m-val { font-size: 22px; font-weight: 600; display: flex; align-items: baseline; gap: 2px; }
+  .m-unit { font-size: 12px; color: var(--muted); font-weight: 400; }
+
+  /* Controls Section */
+  .section-title { font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 12px; padding-left: 4px; }
+  .control-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 20px; border-radius: 24px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .c-row { display: flex; justify-content: space-between; align-items: center; }
+  .c-label { font-size: 15px; font-weight: 500; }
+  
+  /* Custom Toggle Switch */
+  .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { 
+    position: absolute; cursor: pointer; inset: 0; background-color: #334155; 
+    transition: .4s; border-radius: 24px; 
+  }
+  .slider:before { 
+    position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; 
+    background-color: white; transition: .4s; border-radius: 50%; 
+  }
+  input:checked + .slider { background-color: var(--accent); }
+  input:checked + .slider:before { transform: translateX(20px); }
+
+  /* Slider for Capacity */
+  input[type=range] { width: 100%; accent-color: var(--accent); background: transparent; }
+  .range-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+  /* PWA Feel: Avoid scroll bouncing */
+  html, body { height: 100%; overflow: hidden; }
+  .scroll-area { height: 100%; overflow-y: auto; padding-bottom: 40px; }
+
+</style>
+</head>
+<body>
+
+<div class="scroll-area">
+  <header>
+    <div class="logo"><h1>LibraryOS</h1></div>
+    <div class="status-pill" id="connStatus">LIVE SYNC</div>
+  </header>
+
+  <div class="hero-card">
+    <div class="hero-label">CURRENT OCCUPANCY</div>
+    <div class="hero-val" id="occVal">00</div>
+    <div class="hero-sub">Capacity Limit: <span id="maxCapVal">...</span></div>
+    <div class="progress-bg">
+      <div class="progress-fill" id="occFill"></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="metric">
+      <div class="m-label">TEMPERATURE</div>
+      <div class="m-val"><span id="tempVal">0.0</span> <span class="m-unit">°C</span></div>
+    </div>
+    <div class="metric">
+      <div class="m-label">HUMIDITY</div>
+      <div class="m-val"><span id="humidVal">0</span> <span class="m-unit">%</span></div>
+    </div>
+    <div class="metric">
+      <div class="m-label">AIR QUALITY</div>
+      <div class="m-val"><span id="airVal">0</span> <span class="m-unit">%</span></div>
+    </div>
+    <div class="metric">
+      <div class="m-label">NOISE LEVEL</div>
+      <div class="m-val"><span id="noiseVal">0</span> <span class="m-unit">%</span></div>
+    </div>
+  </div>
+
+  <div class="section-title">REMOTE CONTROLS</div>
+  <div class="control-card">
+    <div class="c-row">
+      <div class="c-label">Buzzer Alert</div>
+      <label class="switch">
+        <input type="checkbox" id="buzzerToggle" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div style="border-top:1px solid var(--border); padding-top:20px;">
+      <div class="c-label">Adjust Max Capacity</div>
+      <input type="range" id="capSlider" min="10" max="200" value="50">
+      <div class="range-labels">
+        <span>10</span>
+        <span id="sliderVal">50</span>
+        <span>200</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  // Firebase Web SDK v10 (Modular)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAGwbhq7KhbvuMlNGtrroVTOi9Oq4VOIh8",
+    authDomain: "library-monitor-65ad9.firebaseapp.com",
+    projectId: "library-monitor-65ad9",
+    storageBucket: "library-monitor-65ad9.firebasestorage.app",
+    messagingSenderId: "646440128822",
+    appId: "1:646440128822:web:781d9577576bc281cbe397",
+    databaseURL: "https://library-monitor-65ad9-default-rtdb.asia-southeast1.firebasedatabase.app"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+
+  let lastSeen = 0;
+  const statusEl = document.getElementById('connStatus');
+
+  // ─── Connection Watchdog ────────────────────────────
+  setInterval(() => {
+    const now = Date.now();
+    const diff = now - lastSeen;
+    
+    if (lastSeen === 0 || diff > 15000) {
+      statusEl.textContent = 'DEVICE OFFLINE';
+      statusEl.style.background = 'rgba(239, 68, 68, 0.1)';
+      statusEl.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+      statusEl.style.color = '#ef4444';
+      
+      // Optional: zero out values if offline
+      if (lastSeen !== 0 && diff > 30000) { // Hard timeout
+        document.getElementById('occVal').textContent = '00';
+      }
+    } else {
+      statusEl.textContent = 'ONLINE';
+      statusEl.style.background = 'rgba(74, 222, 128, 0.1)';
+      statusEl.style.borderColor = 'rgba(74, 222, 128, 0.2)';
+      statusEl.style.color = '#4ade80';
+    }
+  }, 2000);
+
+  // ─── Listen for Sensor Data ───────────────────────────
+  const sensorRef = ref(db, 'sensor');
+  onValue(sensorRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      lastSeen = data.timestamp || Date.now();
+      
+      document.getElementById('occVal').textContent    = data.occupancy.toString().padStart(2, '0');
+      document.getElementById('tempVal').textContent   = data.temperature.toFixed(1);
+      document.getElementById('humidVal').textContent  = data.humidity;
+      document.getElementById('airVal').textContent    = data.airQuality;
+      document.getElementById('noiseVal').textContent  = data.noise;
+      
+      // Update progress bar
+      const maxCap = parseInt(document.getElementById('maxCapVal').textContent) || 50;
+      const pct = (data.occupancy / maxCap) * 100;
+      document.getElementById('occFill').style.width = Math.min(pct, 100) + '%';
+    }
+  });
+
+  // ─── Listen for Controls (sync with ESP32) ───────────
+  const ctrlRef = ref(db, 'controls');
+  onValue(ctrlRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      document.getElementById('maxCapVal').textContent = data.maxCapacity;
+      document.getElementById('sliderVal').textContent = data.maxCapacity;
+      document.getElementById('capSlider').value = data.maxCapacity;
+      document.getElementById('buzzerToggle').checked = data.buzzerEnabled;
+    }
+  });
+
+  // ─── Interaction Handlers ─────────────────────────────
+  document.getElementById('buzzerToggle').addEventListener('change', (e) => {
+    set(ref(db, 'controls/buzzerEnabled'), e.target.checked);
+  });
+
+  document.getElementById('capSlider').addEventListener('input', (e) => {
+    document.getElementById('sliderVal').textContent = e.target.value;
+  });
+
+  document.getElementById('capSlider').addEventListener('change', (e) => {
+    set(ref(db, 'controls/maxCapacity'), parseInt(e.target.value));
+  });
+
+</script>
+</body>
+</html>

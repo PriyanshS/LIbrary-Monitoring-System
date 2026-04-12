@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Library Monitoring System — Wiring Diagram</title>
+<style>
+  body { background: #0d1117; margin: 0; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+  h1 { color: #58a6ff; font-size: 18px; letter-spacing: 2px; margin-bottom: 4px; }
+  p  { color: #8b949e; font-size: 12px; margin: 0 0 20px; }
+  svg text { font-family: 'Courier New', monospace; }
+</style>
+</head>
+<body>
+<h1>LIBRARY MONITORING SYSTEM — PIN WIRING DIAGRAM</h1>
+<p>ESP32 DevKit v1 · All connections listed below</p>
+
+<svg width="1100" height="780" viewBox="0 0 1100 780" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#58a6ff" opacity="0.7"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1100" height="780" fill="#0d1117"/>
+  <rect x="10" y="10" width="1080" height="760" rx="8" fill="none" stroke="#21262d" stroke-width="1"/>
+
+  <!-- ─── ESP32 Board ───────────────────────────────────────── -->
+  <rect x="420" y="60" width="260" height="580" rx="6" fill="#161b22" stroke="#30363d" stroke-width="2"/>
+  <text x="550" y="50" fill="#58a6ff" font-size="13" text-anchor="middle" font-weight="bold" filter="url(#glow)">ESP32 DevKit v1</text>
+
+  <!-- Left pins -->
+  <!-- EN,VP,VN,D34,D35,D32,D33,D25,D26,D27,D14,D12,GND,D13,SD2,SD3,CMD,SD0,CLK -->
+  <!-- Right pins: 3V3,GND,D15,D2,D4,RX2,TX2,D5,D18,D19,D21,RX0,TX0,D22,D23,GND,VIN -->
+
+  <!-- Pin labels LEFT side -->
+  <g fill="#8b949e" font-size="10" text-anchor="end">
+    <text x="418" y="95">EN</text>
+    <text x="418" y="120">VP (36)</text>
+    <text x="418" y="145">VN (39)</text>
+    <text x="418" y="170">D34</text>
+    <text x="418" y="195">D35</text>
+    <text x="418" y="220">D32</text>
+    <text x="418" y="245">D33</text>
+    <text x="418" y="270">D25</text>
+    <text x="418" y="295">D26</text>
+    <text x="418" y="320">D27</text>
+    <text x="418" y="345">D14</text>
+    <text x="418" y="370">D12</text>
+    <text x="418" y="395">GND</text>
+    <text x="418" y="420">D13</text>
+  </g>
+
+  <!-- Pin dots LEFT -->
+  <g fill="#238636">
+    <circle cx="422" cy="92" r="4"/><circle cx="422" cy="117" r="4"/><circle cx="422" cy="142" r="4"/>
+    <circle cx="422" cy="167" r="4"/><circle cx="422" cy="192" r="4"/><circle cx="422" cy="217" r="4"/>
+    <circle cx="422" cy="242" r="4"/><circle cx="422" cy="267" r="4"/><circle cx="422" cy="292" r="4"/>
+    <circle cx="422" cy="317" r="4"/><circle cx="422" cy="342" r="4"/><circle cx="422" cy="367" r="4"/>
+    <circle cx="422" cy="392" r="4" fill="#f85149"/><circle cx="422" cy="417" r="4"/>
+  </g>
+
+  <!-- Pin labels RIGHT side -->
+  <g fill="#8b949e" font-size="10" text-anchor="start">
+    <text x="682" y="95">3V3</text>
+    <text x="682" y="120">GND</text>
+    <text x="682" y="145">D15</text>
+    <text x="682" y="170">D2</text>
+    <text x="682" y="195">D4</text>
+    <text x="682" y="220">RX2</text>
+    <text x="682" y="245">TX2</text>
+    <text x="682" y="270">D5</text>
+    <text x="682" y="295">D18</text>
+    <text x="682" y="320">D19</text>
+    <text x="682" y="345">D21</text>
+    <text x="682" y="370">RX0</text>
+    <text x="682" y="395">TX0</text>
+    <text x="682" y="420">D22</text>
+    <text x="682" y="445">D23</text>
+    <text x="682" y="470">GND</text>
+    <text x="682" y="495">VIN</text>
+  </g>
+
+  <!-- Pin dots RIGHT -->
+  <g fill="#238636">
+    <circle cx="678" cy="92" r="4" fill="#e3b341"/><circle cx="678" cy="117" r="4" fill="#f85149"/>
+    <circle cx="678" cy="142" r="4"/><circle cx="678" cy="167" r="4"/><circle cx="678" cy="192" r="4"/>
+    <circle cx="678" cy="217" r="4"/><circle cx="678" cy="242" r="4"/><circle cx="678" cy="267" r="4"/>
+    <circle cx="678" cy="292" r="4"/><circle cx="678" cy="317" r="4"/><circle cx="678" cy="342" r="4"/>
+    <circle cx="678" cy="367" r="4"/><circle cx="678" cy="392" r="4"/><circle cx="678" cy="417" r="4"/>
+    <circle cx="678" cy="442" r="4"/><circle cx="678" cy="467" r="4" fill="#f85149"/>
+    <circle cx="678" cy="492" r="4" fill="#e3b341"/>
+  </g>
+
+  <!-- USB / VIN label -->
+  <text x="550" y="620" fill="#58a6ff" font-size="11" text-anchor="middle">USB / 5V VIN</text>
+  <rect x="510" y="625" width="80" height="16" rx="3" fill="#1f2937" stroke="#374151"/>
+  <text x="550" y="637" fill="#6b7280" font-size="9" text-anchor="middle">MicroUSB</text>
+
+  <!-- ─── DHT11 ──────────────────────────────────────────────── -->
+  <g transform="translate(30, 80)">
+    <rect width="100" height="80" rx="4" fill="#1e3a8a" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="50" y="20" fill="#3b82f6" font-size="11" text-anchor="middle" font-weight="bold">DHT11</text>
+    <text x="50" y="38" fill="#94a3b8" font-size="9" text-anchor="middle">Temp + Humidity</text>
+    <text x="10" y="56" fill="#94a3b8" font-size="9">VCC → 3.3V</text>
+    <text x="10" y="68" fill="#94a3b8" font-size="9">DATA → D4</text>
+    <text x="10" y="80" fill="#94a3b8" font-size="9">GND → GND</text>
+  </g>
+  <!-- Wire DHT11 DATA → D4 -->
+  <line x1="130" y1="148" x2="678" y2="192" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+
+  <!-- ─── PIR Sensor ─────────────────────────────────────────── -->
+  <g transform="translate(30, 210)">
+    <rect width="100" height="80" rx="4" fill="#1a3326" stroke="#22c55e" stroke-width="1.5"/>
+    <text x="50" y="20" fill="#4ade80" font-size="11" text-anchor="middle" font-weight="bold">PIR HC-SR501</text>
+    <text x="50" y="34" fill="#94a3b8" font-size="9" text-anchor="middle">Motion Sensor</text>
+    <text x="10" y="52" fill="#94a3b8" font-size="9">VCC → 5V/3.3V</text>
+    <text x="10" y="64" fill="#94a3b8" font-size="9">OUT → D14</text>
+    <text x="10" y="76" fill="#94a3b8" font-size="9">GND → GND</text>
+  </g>
+  <!-- Wire PIR OUT → D14 -->
+  <line x1="130" y1="274" x2="422" y2="342" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+
+  <!-- ─── MIC Sensor ─────────────────────────────────────────── -->
+  <g transform="translate(30, 340)">
+    <rect width="100" height="80" rx="4" fill="#2d1b4e" stroke="#a855f7" stroke-width="1.5"/>
+    <text x="50" y="20" fill="#c084fc" font-size="11" text-anchor="middle" font-weight="bold">MIC Module</text>
+    <text x="50" y="34" fill="#94a3b8" font-size="9" text-anchor="middle">Sound Level</text>
+    <text x="10" y="52" fill="#94a3b8" font-size="9">VCC → 3.3V</text>
+    <text x="10" y="64" fill="#94a3b8" font-size="9">AO → D34</text>
+    <text x="10" y="76" fill="#94a3b8" font-size="9">GND → GND</text>
+  </g>
+  <!-- Wire MIC AO → D34 -->
+  <line x1="130" y1="392" x2="422" y2="167" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+
+  <!-- ─── Gas Sensor ─────────────────────────────────────────── -->
+  <g transform="translate(30, 470)">
+    <rect width="100" height="80" rx="4" fill="#3b2200" stroke="#f97316" stroke-width="1.5"/>
+    <text x="50" y="20" fill="#fb923c" font-size="11" text-anchor="middle" font-weight="bold">MQ-2 Gas</text>
+    <text x="50" y="34" fill="#94a3b8" font-size="9" text-anchor="middle">Air Quality</text>
+    <text x="10" y="52" fill="#94a3b8" font-size="9">VCC → 5V</text>
+    <text x="10" y="64" fill="#94a3b8" font-size="9">AO → D35</text>
+    <text x="10" y="76" fill="#94a3b8" font-size="9">GND → GND</text>
+  </g>
+  <!-- Wire Gas AO → D35 -->
+  <line x1="130" y1="520" x2="422" y2="192" stroke="#f97316" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+
+  <!-- ─── Ultrasonic #1 ──────────────────────────────────────── -->
+  <g transform="translate(780, 80)">
+    <rect width="120" height="95" rx="4" fill="#1a2744" stroke="#38bdf8" stroke-width="1.5"/>
+    <text x="60" y="20" fill="#7dd3fc" font-size="11" text-anchor="middle" font-weight="bold">HC-SR04 #1</text>
+    <text x="60" y="34" fill="#94a3b8" font-size="9" text-anchor="middle">Entry Detection</text>
+    <text x="10" y="52" fill="#94a3b8" font-size="9">VCC → 5V</text>
+    <text x="10" y="64" fill="#94a3b8" font-size="9">TRIG → D26</text>
+    <text x="10" y="76" fill="#94a3b8" font-size="9">ECHO → D27</text>
+    <text x="10" y="88" fill="#94a3b8" font-size="9">GND → GND</text>
+  </g>
+  <!-- Wires US1 -->
+  <line x1="780" y1="144" x2="422" y2="292" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+  <line x1="780" y1="156" x2="422" y2="317" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+
+  <!-- ─── Ultrasonic #2 ──────────────────────────────────────── -->
+  <g transform="translate(780, 220)">
+    <rect width="120" height="95" rx="4" fill="#1a2744" stroke="#06b6d4" stroke-width="1.5"/>
+    <text x="60" y="20" fill="#67e8f9" font-size="11" text-anchor="middle" font-weight="bold">HC-SR04 #2</text>
+    <text x="60" y="34" fill="#94a3b8" font-size="9" text-anchor="middle">Exit Detection</text>
+    <text x="10" y="52" fill="#94a3b8" font-size="9">VCC → 5V</text>
+    <text x="10" y="64" fill="#94a3b8" font-size="9">TRIG → D32</text>
+    <text x="10" y="76" fill="#94a3b8" font-size="9">ECHO → D33</text>
+    <text x="10" y="88" fill="#94a3b8" font-size="9">GND → GND</text>
+  </g>
+  <!-- Wires US2 -->
+  <line x1="780" y1="284" x2="678" y2="217" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+  <line x1="780" y1="296" x2="678" y2="242" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+
+  <!-- ─── LED ────────────────────────────────────────────────── -->
+  <g transform="translate(780, 370)">
+    <rect width="120" height="95" rx="4" fill="#1a2a1a" stroke="#84cc16" stroke-width="1.5"/>
+    <text x="60" y="20" fill="#a3e635" font-size="11" text-anchor="middle" font-weight="bold">LED (R/G)</text>
+    <text x="60" y="34" fill="#94a3b8" font-size="9" text-anchor="middle">Status Indicator</text>
+    <text x="10" y="52" fill="#94a3b8" font-size="9">GREEN + → D18</text>
+    <text x="10" y="64" fill="#94a3b8" font-size="9">RED   + → D19</text>
+    <text x="10" y="76" fill="#94a3b8" font-size="9">220Ω resistors</text>
+    <text x="10" y="88" fill="#94a3b8" font-size="9">GND → GND</text>
+  </g>
+  <!-- Wires LED -->
+  <line x1="780" y1="422" x2="678" y2="292" stroke="#84cc16" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+  <line x1="780" y1="434" x2="678" y2="317" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+
+  <!-- ─── Buzzer ─────────────────────────────────────────────── -->
+  <g transform="translate(780, 510)">
+    <rect width="120" height="80" rx="4" fill="#2a1a1a" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="60" y="20" fill="#fca5a5" font-size="11" text-anchor="middle" font-weight="bold">Buzzer</text>
+    <text x="60" y="34" fill="#94a3b8" font-size="9" text-anchor="middle">Alert Actuator</text>
+    <text x="10" y="52" fill="#94a3b8" font-size="9">+ → D23</text>
+    <text x="10" y="64" fill="#94a3b8" font-size="9">− → GND</text>
+    <text x="10" y="76" fill="#94a3b8" font-size="9">(NPN transistor rec.)</text>
+  </g>
+  <!-- Wire Buzzer -->
+  <line x1="780" y1="562" x2="678" y2="442" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+
+  <!-- ─── I2C LCD Display ────────────────────────────────────── -->
+  <g transform="translate(780, 610)">
+    <rect width="120" height="95" rx="4" fill="#1e1e1a" stroke="#eab308" stroke-width="1.5"/>
+    <rect x="10" y="30" width="100" height="40" fill="#064e3b" rx="2"/>
+    <text x="60" y="20" fill="#facc15" font-size="11" text-anchor="middle" font-weight="bold">I2C LCD 16x2</text>
+    <text x="10" y="85" fill="#94a3b8" font-size="9">VCC → 5V  GND → GND</text>
+    <text x="10" y="95" fill="#94a3b8" font-size="9">SDA → D21 SCL → D22</text>
+  </g>
+  <!-- Wires LCD -->
+  <line x1="780" y1="690" x2="678" y2="342" stroke="#facc15" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+  <line x1="780" y1="700" x2="678" y2="417" stroke="#eab308" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+
+  <!-- ─── Power Rail Note ───────────────────────────────────────── -->
+  <rect x="350" y="680" width="400" height="60" rx="4" fill="#161b22" stroke="#30363d"/>
+  <text x="550" y="700" fill="#e3b341" font-size="11" text-anchor="middle" font-weight="bold">⚡ Power Notes</text>
+  <text x="550" y="716" fill="#8b949e" font-size="9.5" text-anchor="middle">DHT22 / PIR / MIC → 3.3V rail from ESP32</text>
+  <text x="550" y="730" fill="#8b949e" font-size="9.5" text-anchor="middle">MQ-2 / HC-SR04 → 5V rail (USB 5V from breadboard)</text>
+
+  <!-- Legend -->
+  <rect x="30" y="680" width="300" height="70" rx="4" fill="#161b22" stroke="#30363d"/>
+  <text x="180" y="698" fill="#58a6ff" font-size="11" text-anchor="middle" font-weight="bold">Wire Color Key</text>
+  <line x1="45" y1="712" x2="85" y2="712" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4,3"/>
+  <text x="90" y="716" fill="#8b949e" font-size="9">Data signal</text>
+  <line x1="155" y1="712" x2="195" y2="712" stroke="#e3b341" stroke-width="2"/>
+  <text x="200" y="716" fill="#8b949e" font-size="9">Power (3.3V/5V)</text>
+  <line x1="45" y1="730" x2="85" y2="730" stroke="#f85149" stroke-width="2"/>
+  <text x="90" y="734" fill="#8b949e" font-size="9">GND</text>
+  <line x1="155" y1="730" x2="195" y2="730" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,3"/>
+  <text x="200" y="734" fill="#8b949e" font-size="9">Ultrasonic</text>
+</svg>
+
+<!-- Pin Table -->
+<div style="color:#8b949e; font-size:12px; max-width:900px; margin-top:20px;">
+<table style="border-collapse:collapse; width:100%;">
+  <tr style="color:#58a6ff; border-bottom:1px solid #21262d;">
+    <th style="padding:8px; text-align:left;">Component</th>
+    <th style="padding:8px; text-align:left;">Pin</th>
+    <th style="padding:8px; text-align:left;">ESP32 GPIO</th>
+    <th style="padding:8px; text-align:left;">Notes</th>
+  </tr>
+  <tr style="border-bottom:1px solid #21262d;"><td style="padding:8px;">DHT11</td><td>DATA</td><td>GPIO 4 (D4)</td><td>4.7kΩ pull-up to 3.3V</td></tr>
+  <tr style="border-bottom:1px solid #21262d;"><td style="padding:8px;">PIR HC-SR501</td><td>OUT</td><td>GPIO 14 (D14)</td><td>Adjust sensitivity pot</td></tr>
+  <tr style="border-bottom:1px solid #21262d;"><td style="padding:8px;">Mic Module</td><td>AO (Analog)</td><td>GPIO 34 (D34)</td><td>Input-only ADC pin</td></tr>
+  <tr style="border-bottom:1px solid #21262d;"><td style="padding:8px;">MQ-2 Gas</td><td>AO (Analog)</td><td>GPIO 35 (D35)</td><td>Input-only ADC pin; preheat 24h</td></tr>
+  <tr style="border-bottom:1px solid #21262d;"><td style="padding:8px;">HC-SR04 #1 (Entry)</td><td>TRIG / ECHO</td><td>GPIO 26 / 27</td><td>5V powered; echo via voltage divider</td></tr>
+  <tr style="border-bottom:1px solid #21262d;"><td style="padding:8px;">HC-SR04 #2 (Exit)</td><td>TRIG / ECHO</td><td>GPIO 32 / 33</td><td>5V powered; echo via voltage divider</td></tr>
+  <tr style="border-bottom:1px solid #21262d;"><td style="padding:8px;">LED Green</td><td>Anode</td><td>GPIO 18 (D18)</td><td>220Ω series resistor</td></tr>
+  <tr style="border-bottom:1px solid #21262d;"><td style="padding:8px;">LED Red</td><td>Anode</td><td>GPIO 19 (D19)</td><td>220Ω series resistor</td></tr>
+  <tr style="border-bottom:1px solid #21262d;"><td style="padding:8px;">Buzzer</td><td>+</td><td>GPIO 23 (D23)</td><td>Use NPN transistor for passive buzzer</td></tr>
+  <tr style="border-bottom:1px solid #21262d;"><td style="padding:8px;">I2C LCD 16x2</td><td>SDA / SCL</td><td>GPIO 21 / 22</td><td>5V powered; I2C address 0x27</td></tr>
+</table>
+</div>
+</body>
+</html>
