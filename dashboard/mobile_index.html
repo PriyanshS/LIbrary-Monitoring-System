@@ -126,6 +126,13 @@
     <div class="progress-bg">
       <div class="progress-fill" id="occFill"></div>
     </div>
+    <div style="margin-top:20px; display:flex; gap:10px;">
+      <button onclick="manualEntry()" style="flex:1; background:rgba(74, 222, 128, 0.2); border:1px solid rgba(74, 222, 128, 0.4); color:#4ade80; padding:12px; border-radius:12px; font-weight:600; font-family:'Outfit';">+ ENTRY</button>
+      <button id="exitBtn" style="flex:1; background:rgba(59, 130, 246, 0.2); border:1px solid rgba(59, 130, 246, 0.4); color:#60a5fa; padding:12px; border-radius:12px; font-weight:600; font-family:'Outfit';">− EXIT</button>
+    </div>
+    <div style="margin-top:10px;">
+      <button id="resetBtn" style="width:100%; background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); color:#f87171; padding:12px; border-radius:12px; font-weight:600; font-family:'Outfit';">RESET OCCUPANCY</button>
+    </div>
   </div>
 
   <div class="grid">
@@ -153,6 +160,20 @@
       <div class="c-label">Buzzer Alert</div>
       <label class="switch">
         <input type="checkbox" id="buzzerToggle" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="c-row">
+      <div class="c-label">Red LED Override</div>
+      <label class="switch">
+        <input type="checkbox" id="ledRedToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="c-row">
+      <div class="c-label">Green LED Override</div>
+      <label class="switch">
+        <input type="checkbox" id="ledGreenToggle">
         <span class="slider"></span>
       </label>
     </div>
@@ -219,11 +240,21 @@
     if (data) {
       lastSeen = data.timestamp || Date.now();
       
-      document.getElementById('occVal').textContent    = data.occupancy.toString().padStart(2, '0');
+      // Update metrics
       document.getElementById('tempVal').textContent   = data.temperature.toFixed(1);
       document.getElementById('humidVal').textContent  = data.humidity;
       document.getElementById('airVal').textContent    = data.airQuality;
       document.getElementById('noiseVal').textContent  = data.noise;
+      
+      // Handle occupancy change
+      const currentOcc = parseInt(document.getElementById('occVal').textContent);
+      if (currentOcc !== data.occupancy) {
+        document.getElementById('occVal').textContent = data.occupancy.toString().padStart(2, '0');
+        // Visual pop on change
+        const valEl = document.getElementById('occVal');
+        valEl.style.transform = 'scale(1.1)';
+        setTimeout(() => valEl.style.transform = 'scale(1)', 200);
+      }
       
       // Update progress bar
       const maxCap = parseInt(document.getElementById('maxCapVal').textContent) || 50;
@@ -241,12 +272,39 @@
       document.getElementById('sliderVal').textContent = data.maxCapacity;
       document.getElementById('capSlider').value = data.maxCapacity;
       document.getElementById('buzzerToggle').checked = data.buzzerEnabled;
+      document.getElementById('ledRedToggle').checked = data.ledRed;
+      document.getElementById('ledGreenToggle').checked = data.ledGreen;
     }
   });
 
   // ─── Interaction Handlers ─────────────────────────────
+  
+  // Increase Occupancy (Manual Adjustment)
+  window.manualEntry = () => {
+    set(ref(db, 'controls/remoteAdj'), 1);
+  };
+
+  // Decrease Occupancy (Exit)
+  document.getElementById('exitBtn').addEventListener('click', () => {
+    set(ref(db, 'controls/remoteAdj'), -1);
+  });
+
+  // Reset Occupancy
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    if(confirm('Reset occupancy to 0?')) {
+      set(ref(db, 'controls/resetOccupancy'), true);
+    }
+  });
   document.getElementById('buzzerToggle').addEventListener('change', (e) => {
     set(ref(db, 'controls/buzzerEnabled'), e.target.checked);
+  });
+
+  document.getElementById('ledRedToggle').addEventListener('change', (e) => {
+    set(ref(db, 'controls/ledRed'), e.target.checked);
+  });
+
+  document.getElementById('ledGreenToggle').addEventListener('change', (e) => {
+    set(ref(db, 'controls/ledGreen'), e.target.checked);
   });
 
   document.getElementById('capSlider').addEventListener('input', (e) => {

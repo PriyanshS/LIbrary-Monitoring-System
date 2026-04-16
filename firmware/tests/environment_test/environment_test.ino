@@ -1,13 +1,13 @@
 #include "DHT.h"
 
-#define DHTPIN 4     // Pin 15 is best for ESP32
-#define DHTTYPE DHT22   // Specifically for DHT22
+#define DHTPIN 4        // Change this if you moved the wire to a different pin
+#define DHTTYPE DHT22   // Use DHT22 if that's what you have
 
 DHT dht(DHTPIN, DHTTYPE);
 
 void setup() {
   Serial.begin(115200);
-  Serial.println(F("DHT22 Test on GPIO 15"));
+  Serial.println(F("--- Old DHT Test Script ---"));
   dht.begin();
 }
 
@@ -17,9 +17,8 @@ void loop() {
   float h = dht.readHumidity();
   float t = dht.readTemperature();
 
-  // If both are 0 or NaN, there is still a signal issue
   if (isnan(h) || isnan(t)) {
-    Serial.println(F("Failed to read from DHT22 on Pin 15!"));
+    Serial.printf("Failed to read from DHT sensor on Pin %d!\n", DHTPIN);
     return;
   }
 

@@ -418,8 +418,8 @@
     </div>
     <div class="metric-card noise">
       <div class="metric-icon">🔊</div>
-      <div class="metric-label">Noise Level</div>
-      <div><span class="metric-val" id="noiseVal">32</span><span class="metric-unit">dB</span></div>
+      <div class="metric-unit">Noise Level (%)</div>
+      <div class="metric-value"><span id="noiseVal">0</span> %</div>
       <div class="metric-sub" id="noiseSub">Quiet</div>
       <div class="metric-spark"><svg id="noiseSpark"><polyline class="spark-path" id="noiseLine" stroke="#a855f7" points=""/></svg></div>
     </div>
@@ -482,12 +482,12 @@
           <div class="pir-indicator active" id="buzzerToggle" onclick="toggleBuzzer()"><div class="pir-knob"></div></div>
         </div>
         <div class="pir-row">
-          <span class="pir-label">Green LED</span>
-          <div class="pir-indicator active" id="greenLedToggle"><div class="pir-knob"></div></div>
+          <span class="pir-label">Green LED Override</span>
+          <div class="pir-indicator" id="ledGreenToggle" onclick="toggleGreenLed()"><div class="pir-knob"></div></div>
         </div>
         <div class="pir-row">
-          <span class="pir-label">Red LED</span>
-          <div class="pir-indicator" id="redLedToggle"><div class="pir-knob"></div></div>
+          <span class="pir-label">Red LED Override</span>
+          <div class="pir-indicator" id="ledRedToggle" onclick="toggleRedLed()"><div class="pir-knob"></div></div>
         </div>
       </div>
 
@@ -556,10 +556,16 @@ onValue(ref(db, 'sensor'), (snapshot) => {
     state.humid    = data.humidity;
     state.noise    = data.noise;
     state.air      = data.airQuality;
-    state.occ      = data.occupancy;
-    state.pir      = data.pir;
     state.comfort  = data.comfort;
+    state.status   = data.status || 'OK';
     state.lastSeen = data.timestamp || Date.now();
+
+    // Log occupancy changes
+    if (state.occ !== data.occupancy) {
+      const diff = data.occupancy - state.occ;
+      addLog(diff > 0 ? 'Person Entered' : 'Person Exited', diff > 0 ? '#00e5b0' : '#4f9eff');
+      state.occ = data.occupancy;
+    }
 
     // Update history for charts
     state.histComfort.push(state.comfort);
@@ -579,6 +585,8 @@ onValue(ref(db, 'controls'), (snapshot) => {
   if (data) {
     state.maxCap = data.maxCapacity;
     state.buzzer = data.buzzerEnabled;
+    state.ledRed = data.ledRed;
+    state.ledGreen = data.ledGreen;
     
     // Update UI elements that are not handled by render()
     document.getElementById('capVal').textContent = data.maxCapacity;
@@ -587,6 +595,12 @@ onValue(ref(db, 'controls'), (snapshot) => {
     
     const bz = document.getElementById('buzzerToggle');
     state.buzzer ? bz.classList.add('active') : bz.classList.remove('active');
+
+    const lr = document.getElementById('ledRedToggle');
+    state.ledRed ? lr.classList.add('active') : lr.classList.remove('active');
+
+    const lg = document.getElementById('ledGreenToggle');
+    state.ledGreen ? lg.classList.add('active') : lg.classList.remove('active');
     
     render();
   }
@@ -612,16 +626,18 @@ setInterval(() => {
 
 // ─── Interactions ───
 window.simulateEntry = () => {
-  set(ref(db, 'sensor/occupancy'), state.occ + 1);
-  addLog('Remote: Added entry', '#00e5b0');
+  set(ref(db, 'controls/remoteAdj'), 1);
+  addLog('Remote: Added entry (CMD)', '#00e5b0');
 };
 window.simulateExit = () => {
-  if (state.occ > 0) set(ref(db, 'sensor/occupancy'), state.occ - 1);
-  addLog('Remote: Added exit', '#4f9eff');
+  set(ref(db, 'controls/remoteAdj'), -1);
+  addLog('Remote: Added exit (CMD)', '#4f9eff');
 };
 window.resetOccupancy = () => {
-  set(ref(db, 'sensor/occupancy'), 0);
-  addLog('Remote: Reset occupancy', '#ffd166');
+  if(confirm('Reset occupancy to 0?')) {
+    set(ref(db, 'controls/resetOccupancy'), true);
+    addLog('Remote: Reset occupancy (CMD)', '#ffd166');
+  }
 };
 window.setCapacity = (v) => {
   set(ref(db, 'controls/maxCapacity'), parseInt(v));
@@ -629,6 +645,14 @@ window.setCapacity = (v) => {
 window.toggleBuzzer = () => {
   set(ref(db, 'controls/buzzerEnabled'), !state.buzzer);
   addLog('Remote: Toggled buzzer', '#ffd166');
+};
+window.toggleRedLed = () => {
+  set(ref(db, 'controls/ledRed'), !state.ledRed);
+  addLog('Remote: Toggled Red LED', '#ff6b6b');
+};
+window.toggleGreenLed = () => {
+  set(ref(db, 'controls/ledGreen'), !state.ledGreen);
+  addLog('Remote: Toggled Green LED', '#00e5b0');
 };
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }

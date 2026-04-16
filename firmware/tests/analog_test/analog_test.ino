@@ -19,26 +19,38 @@ void setup() {
 }
 
 void loop() {
-  // Read raw 12-bit ADC values (0 - 4095)
-  int micValue = analogRead(MIC_PIN);
-  int gasValue = analogRead(GAS_PIN);
-  
-  Serial.print("Time: "); Serial.print(millis()/1000); Serial.print("s | ");
-  
-  Serial.print("Mic Level: ");
-  Serial.print(micValue);
-  
-  // Simple visualizer for Mic
-  if (micValue > 2500) Serial.print(" [ LOUD ]");
-  else if (micValue < 500) Serial.print(" [ SILENT ]");
-  else Serial.print(" [ NORMAL ]");
+  // Monitor three potential ADC1 pins to help you find the right one
+  int pins[] = {34, 32, 33};
+  const char* labels[] = {"D34", "D32", "D33"};
 
-  Serial.print(" | Gas/Smoke: ");
-  Serial.print(gasValue);
+  Serial.print("Time: "); Serial.print(millis()/1000); Serial.println("s");
+
+  for (int i=0; i<3; i++) {
+    int pin = pins[i];
+    unsigned long startMillis = millis();
+    unsigned int signalMax = 0;
+    unsigned int signalMin = 4095;
+    
+    while (millis() - startMillis < 50) {
+      unsigned int sample = analogRead(pin);
+      if (sample > signalMax) signalMax = sample;
+      if (sample < signalMin) signalMin = sample;
+    }
+    unsigned int p2p = signalMax - signalMin;
+
+    Serial.print("  Pin "); Serial.print(labels[i]);
+    Serial.print(" -> P2P: "); Serial.print(p2p);
+    Serial.print(" | Min: "); Serial.print(signalMin);
+    Serial.print(" | Max: "); Serial.print(signalMax);
+    if (p2p > 200) Serial.print(" <--- [!] SIGNAL DETECTED");
+    Serial.println();
+  }
+
+  // Gas Sensor on 35
+  long gasSum = 0;
+  for (int i=0; i<10; i++) gasSum += analogRead(GAS_PIN);
+  Serial.print("  Pin D35 (GAS) -> Avg: "); Serial.println(gasSum / 10);
   
-  if (gasValue > 2000) Serial.print(" [ ALERT: GAS DETECTED ]");
-  
-  Serial.println();
-  
-  delay(100); // Faster sampling for Mic to catch noise
+  Serial.println("----------------------------------------");
+  delay(1000); 
 }

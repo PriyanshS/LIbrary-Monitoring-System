@@ -1,308 +1,341 @@
 /*
  * ============================================================
- * LIBRARY MONITORING SYSTEM — Firebase Edition
- * Smart Environment & Occupancy Monitor
- *
- * Hardware: ESP32
- * Cloud: Firebase Realtime Database
+ * LIBRARY MONITORING SYSTEM — Final Production v3
+ * Refined Occupancy, Multi-Screen LCD, and Pulsed Alerts
  * ============================================================
  */
 
-#include <DHT.h>
+#include <DHTesp.h>
 #include <Firebase_ESP_Client.h>
 #include <LiquidCrystal_I2C.h>
 #include <WiFi.h>
+#include <Wire.h>
 
-// Provide the token generation process info.
+// Firebase Helpers
 #include "addons/TokenHelper.h"
-// Provide the RTDB payload printing info and other helper functions.
 #include "addons/RTDBHelper.h"
 
 // ─── Credentials ─────────────────────────────────────────────
 #define WIFI_SSID "Piyansh Sakxena"
 #define WIFI_PASSWORD "piyu@1234"
-
-// From Firebase Console -> Project Settings -> General
 #define API_KEY "AIzaSyAGwbhq7KhbvuMlNGtrroVTOi9Oq4VOIh8"
-// From Firebase Console -> Realtime Database
 #define DATABASE_URL "https://library-monitor-65ad9-default-rtdb.asia-southeast1.firebasedatabase.app"
 
-// ─── Pin Definitions ─────────────────────────────────────────
-#define DHT_PIN 4
-#define DHT_TYPE DHT11
-#define PIR_PIN 14
-#define MIC_PIN 34
-#define GAS_PIN 35
-#define TRIG1_PIN 26
-#define ECHO1_PIN 27
-#define TRIG2_PIN 32
-#define ECHO2_PIN 33
-#define LED_GREEN_PIN 18
-#define LED_RED_PIN 19
-#define BUZZER_PIN 23
+// ─── Pin Definitions (Oct 2024 Wiring) ───────────────────────
+#define DHT_PIN 14
+#define PIR_PIN 36        // VP (Input Only)
+#define MIC_PIN 34        // AO
+#define GAS_PIN 35        // AO
+#define TRIG1_PIN 26      // US Trigger
+#define ECHO1_PIN 39      // VN (Input Only)
+#define SDA_PIN 27        // LCD SDA
+#define SCL_PIN 13        // LCD SCL
+#define BUZZER_PIN 33
+#define LED_RED_PIN 32
+#define LED_GREEN_PIN 25
 
-// ─── Thresholds ──────────────────────────────────────────────
+// ─── Thresholds & Baselines ──────────────────────────────────
 #define MAX_CAPACITY_DEFAULT 50
-#define NOISE_THRESHOLD 2500
+#define NOISE_BASELINE 20
+#define NOISE_THRESHOLD 100
+#define GAS_BASELINE 900
 #define GAS_THRESHOLD 2000
-#define TEMP_MAX 30.0
-#define DISTANCE_TRIGGER_CM 80
+#define DISTANCE_TRIGGER_CM 10   // Refined as per user (> 10cm ignored)
 
 // ─── Objects ──────────────────────────────────────────────────
-DHT dht(DHT_PIN, DHT_TYPE);
+DHTesp dht;
 LiquidCrystal_I2C lcd(0x27, 16, 2);
-
 FirebaseData fbdo;
-FirebaseData stream;
 FirebaseAuth auth;
 FirebaseConfig config;
 
 // ─── State Variables ──────────────────────────────────────────
 int occupancyCount = 0;
 int maxCapacity = MAX_CAPACITY_DEFAULT;
+float temperature = 0, humidity = 0;
+int noiseLevel = 0, airQuality = 0;
+bool isOnline = false;
+
+// Remote Controls
 bool buzzerEnabled = true;
-float temperature = 0;
-float humidity = 0;
-int noiseLevel = 0;
-int airQuality = 0;
-bool pirState = false;
+bool ledRedOverride = false;
+bool ledGreenOverride = false;
+bool remoteTriggeredReset = false;
 
-bool entry1Triggered = false;
-bool entry2Triggered = false;
-unsigned long lastEntry1 = 0;
-unsigned long lastEntry2 = 0;
-unsigned long lastPush = 0;
-unsigned long lastSample = 0;
+// Streaming Data
+FirebaseData fbdoStream;
 
-// ─── Function Prototypes ──────────────────────────────────────
-float readDistance(int trigPin, int echoPin);
-int computeComfortScore();
-void updateActuators();
-void pushToFirebase();
-void readAllSensors();
-void handleOccupancy();
-void updateLCD();
-void streamCallback(FirebaseStream data);
-void streamTimeoutCallback(bool timeout);
+// Multi-Screen LCD
+int currentLcdScreen = 0;
+unsigned long lastScreenSwitch = 0;
 
-// ─── Setup ────────────────────────────────────────────────────
-void setup() {
-  Serial.begin(115200);
+// Non-blocking Pulse Alarm
+unsigned long lastPulseTime = 0;
+bool pulseState = false;
 
-  pinMode(PIR_PIN, INPUT);
-  pinMode(TRIG1_PIN, OUTPUT);
-  pinMode(ECHO1_PIN, INPUT);
-  pinMode(TRIG2_PIN, OUTPUT);
-  pinMode(ECHO2_PIN, INPUT);
-  pinMode(LED_GREEN_PIN, OUTPUT);
-  pinMode(LED_RED_PIN, OUTPUT);
-  pinMode(BUZZER_PIN, OUTPUT);
+// Robust State Machine for Occupancy
+enum OccState { IDLE, PIR_FIRST, US_FIRST, COOLDOWN };
+OccState currentState = IDLE;
+unsigned long stateStartTime = 0;
+unsigned long lastCountTime = 0;
 
-  dht.begin();
-  lcd.init();
-  lcd.backlight();
-  lcd.setCursor(0, 0);
-  lcd.print("LibraryOS Boot");
+unsigned long lastCloudSync = 0;
+unsigned long lastLocalSample = 0;
+unsigned long lastBuzzerAction = 0; // For PIR lockout
+unsigned long lastStreamCheck = 0;
 
-  // WiFi
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print("Connecting to WiFi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\nWiFi Connected");
+// ─── Functions ────────────────────────────────────────────────
 
-  // Firebase Config
-  config.api_key = API_KEY;
-  config.database_url = DATABASE_URL;
-
-  // Sign up/in anonymously for simplicity (ensure Auth is enabled in console)
-  if (Firebase.signUp(&config, &auth, "", "")) {
-    Serial.println("Firebase Auth: Success");
-  } else {
-    Serial.printf("Firebase Auth Failed: %s\n",
-                  config.signer.signupError.message.c_str());
-  }
-
-  Firebase.begin(&config, &auth);
-  Firebase.reconnectWiFi(true);
-
-  // Setup Stream (Receive commands from App)
-  if (!Firebase.RTDB.beginStream(&stream, "/controls")) {
-    Serial.printf("Stream begin error: %s\n", stream.errorReason().c_str());
-  }
-  Firebase.RTDB.setStreamCallback(&stream, streamCallback,
-                                  streamTimeoutCallback);
-
-  lcd.clear();
-  lcd.print("System Ready");
-  delay(1000);
-}
-
-// ─── Loop ─────────────────────────────────────────────────────
-void loop() {
-  unsigned long now = millis();
-
-  // Read sensors every 2s
-  if (now - lastSample >= 2000) {
-    readAllSensors();
-    handleOccupancy();
-    updateLCD();
-    lastSample = now;
-  }
-
-  // Push to Firebase every 5s (to avoid flooding)
-  if (now - lastPush >= 5000) {
-    pushToFirebase();
-    lastPush = now;
-  }
-}
-
-// ─── Firebase Stream Callback ────────────────────────────────
-void streamCallback(FirebaseStream data) {
-  String path = data.dataPath();
-  String val = data.stringData();
-
-  if (path == "/maxCapacity") {
-    maxCapacity = val.toInt();
-    Serial.printf("[FIREBASE] Max Capacity set to %d\n", maxCapacity);
-  } else if (path == "/buzzerEnabled") {
-    buzzerEnabled = (val == "true");
-    Serial.printf("[FIREBASE] Buzzer %s\n", buzzerEnabled ? "ON" : "OFF");
-  }
-}
-
-void streamTimeoutCallback(bool timeout) {
-  if (timeout)
-    Serial.println("[STREAM] Timeout, resuming...");
-}
-
-// ─── Push to Firebase ────────────────────────────────────────
-void pushToFirebase() {
-  if (Firebase.ready()) {
-    FirebaseJson json;
-    json.set("temperature", temperature);
-    json.set("humidity", humidity);
-    json.set("noise", map(noiseLevel, 0, 4095, 0, 100));
-    json.set("airQuality", map(airQuality, 0, 4095, 0, 100));
-    json.set("occupancy", occupancyCount);
-    json.set("pir", pirState);
-    json.set("comfort", computeComfortScore());
-    json.set("timestamp/.sv", "timestamp"); // Server-side timestamp for connection monitoring
-
-    // Build Status String
-    int comfort = computeComfortScore();
-    String status = "FAIR";
-    if (occupancyCount >= maxCapacity)
-      status = "FULL";
-    else if (airQuality > GAS_THRESHOLD)
-      status = "POOR AIR";
-    else if (comfort > 75)
-      status = "EXCELLENT";
-    else if (comfort > 50)
-      status = "GOOD";
-
-    json.set("status", status);
-
-    if (Firebase.RTDB.setJSON(&fbdo, "/sensor", &json)) {
-      Serial.println("[FIREBASE] Data Sync Complete");
-    } else {
-      Serial.println("[FIREBASE] Sync Error: " + fbdo.errorReason());
-    }
-  }
-}
-
-// ─── Sensor Logic (Same as before) ───────────────────────────
-void readAllSensors() {
-  float t = dht.readTemperature();
-  float h = dht.readHumidity();
-  if (!isnan(t))
-    temperature = t;
-  if (!isnan(h))
-    humidity = h;
-  pirState = digitalRead(PIR_PIN);
-  noiseLevel = analogRead(MIC_PIN);
-  airQuality = analogRead(GAS_PIN);
-  updateActuators();
-}
-
-void handleOccupancy() {
-  float d1 = readDistance(TRIG1_PIN, ECHO1_PIN);
-  float d2 = readDistance(TRIG2_PIN, ECHO2_PIN);
-  unsigned long now = millis();
-
-  if (d1 < DISTANCE_TRIGGER_CM && !entry1Triggered) {
-    entry1Triggered = true;
-    lastEntry1 = now;
-  }
-  if (entry1Triggered && d2 < DISTANCE_TRIGGER_CM) {
-    if ((now - lastEntry1) < 3000)
-      occupancyCount++;
-    entry1Triggered = false;
-  }
-  if (entry1Triggered && (now - lastEntry1) > 3000)
-    entry1Triggered = false;
-
-  if (d2 < DISTANCE_TRIGGER_CM && !entry2Triggered) {
-    entry2Triggered = true;
-    lastEntry2 = now;
-  }
-  if (entry2Triggered && d1 < DISTANCE_TRIGGER_CM) {
-    if ((now - lastEntry2) < 3000 && occupancyCount > 0)
-      occupancyCount--;
-    entry2Triggered = false;
-  }
-  if (entry2Triggered && (now - lastEntry2) > 3000)
-    entry2Triggered = false;
-}
-
-float readDistance(int trigPin, int echoPin) {
-  float speedOfSound = 331.3 + (0.606 * temperature);
-  digitalWrite(trigPin, LOW);
+float readDistance() {
+  digitalWrite(TRIG1_PIN, LOW);
   delayMicroseconds(2);
-  digitalWrite(trigPin, HIGH);
+  digitalWrite(TRIG1_PIN, HIGH);
   delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  long duration = pulseIn(echoPin, HIGH, 30000);
-  if (duration == 0)
-    return 999.0;
-  return (duration * speedOfSound / 10000.0) / 2.0;
+  digitalWrite(TRIG1_PIN, LOW);
+  long duration = pulseIn(ECHO1_PIN, HIGH, 20000); // 20ms timeout
+  if (duration == 0) return 999.0;
+  return (duration * 0.0343) / 2.0;
 }
 
-int computeComfortScore() {
-  int s = 100;
-  if (temperature > TEMP_MAX)
-    s -= (int)((temperature - TEMP_MAX) * 3);
-  if (noiseLevel > NOISE_THRESHOLD)
-    s -= 20;
-  if (airQuality > GAS_THRESHOLD)
-    s -= 25;
-  if (occupancyCount >= maxCapacity)
-    s -= 30;
-  return constrain(s, 0, 100);
-}
-
-void updateActuators() {
-  bool alert = (occupancyCount >= maxCapacity) || (airQuality > GAS_THRESHOLD);
-  digitalWrite(LED_RED_PIN, alert ? HIGH : LOW);
-  digitalWrite(LED_GREEN_PIN, alert ? LOW : HIGH);
-  if (buzzerEnabled && alert) {
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(100);
-    digitalWrite(BUZZER_PIN, LOW);
-  }
+void beep(int duration) {
+  lastBuzzerAction = millis();
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(duration);
+  digitalWrite(BUZZER_PIN, LOW);
 }
 
 void updateLCD() {
   lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.printf("OCC:%d/%d T:%.1f", occupancyCount, maxCapacity, temperature);
-  lcd.setCursor(0, 1);
-  if (occupancyCount >= maxCapacity)
-    lcd.print("!! LIB FULL !!");
-  else if (airQuality > GAS_THRESHOLD)
-    lcd.print("!! POOR AIR !!");
-  else
-    lcd.printf("Status:%d%% OK", computeComfortScore());
+  switch (currentLcdScreen) {
+    case 0: // Main Occupancy & Climate
+      lcd.setCursor(0, 0);
+      lcd.printf("C:%d/%d T:%.1f", occupancyCount, maxCapacity, temperature);
+      lcd.setCursor(0, 1);
+      lcd.printf("HUMIDITY: %.0f%%", humidity);
+      break;
+    case 1: // Environment Raw + %
+      lcd.setCursor(0, 0);
+      lcd.printf("N:%d(%d%%)", noiseLevel, constrain(map(noiseLevel, NOISE_BASELINE, 200, 0, 100), 0, 100));
+      lcd.setCursor(0, 1);
+      lcd.printf("A:%d(%d%%)", airQuality, constrain(map(airQuality, GAS_BASELINE, 2000, 0, 100), 0, 100));
+      break;
+    case 2: // Network Status
+      lcd.setCursor(0, 0);
+      lcd.printf("NETWORK STATUS");
+      lcd.setCursor(0, 1);
+      lcd.print(isOnline ? "WiFi: CONNECTED" : "WiFi: DISCONNECTED");
+      break;
+  }
+}
+
+void handleAlerts() {
+  // Master Logic: Dashboard controls take priority
+  // If ledRedOverride is true, Red LED is ON. If false, it follows automated sensor logic ONLY if ledGreenOverride is also false.
+  
+  bool sensorAlert = (occupancyCount >= maxCapacity) || (airQuality > GAS_THRESHOLD) || (noiseLevel > NOISE_THRESHOLD);
+  
+  // Logic: Dashboard 'ON' always ON. 
+  // If both are OFF, then use Auto logic.
+  bool redState = ledRedOverride;
+  bool greenState = ledGreenOverride;
+
+  if (!ledRedOverride && !ledGreenOverride) {
+     redState = sensorAlert;
+     greenState = !sensorAlert;
+  }
+
+  digitalWrite(LED_RED_PIN, redState ? HIGH : LOW);
+  digitalWrite(LED_GREEN_PIN, greenState ? HIGH : LOW);
+
+  // Buzzer: Master Silence Path
+  if (buzzerEnabled && sensorAlert) {
+    if (millis() - lastPulseTime > 1000) { 
+      pulseState = !pulseState;
+      digitalWrite(BUZZER_PIN, pulseState ? HIGH : LOW);
+      if (pulseState) lastBuzzerAction = millis(); 
+      lastPulseTime = millis();
+    }
+  } else {
+    digitalWrite(BUZZER_PIN, LOW);
+  }
+}
+
+void handleOccupancy() {
+  unsigned long now = millis();
+  
+  // 1. Feedback Loop Protection: Ignore if buzzer recently active
+  if (now - lastBuzzerAction < 1000) return;
+
+  // 2. Cooldown between increments
+  if (now - lastCountTime > 3000) { 
+    bool pir = digitalRead(PIR_PIN);
+    
+    // 3. Robust distance sampling (require 3 consistent samples)
+    int samplesBelow = 0;
+    for(int i=0; i<3; i++) {
+       if (readDistance() <= DISTANCE_TRIGGER_CM) samplesBelow++;
+       delay(10);
+    }
+    bool ultra = (samplesBelow >= 2);
+
+    if (pir && ultra) {
+      occupancyCount++;
+      beep(150); 
+      lastCountTime = now;
+      Serial.printf("[ENTRY] Count: %d\n", occupancyCount);
+      
+      // Immediate push to Firebase to prevent sync lag
+      FirebaseJson json;
+      json.set("occupancy", occupancyCount);
+      json.set("timestamp", now);
+      Firebase.RTDB.updateNodeAsync(&fbdo, "/sensor", &json);
+    }
+  }
+}
+
+// ─── Firebase Handlers ────────────────────────────────────────
+
+void streamCallback(FirebaseStream data) {
+  String path = data.dataPath();
+  String val = data.payload();
+  Serial.printf("[FIREBASE] Stream update on %s: %s\n", path.c_str(), val.c_str());
+  
+  if (path == "/") {
+    FirebaseJson &json = data.jsonObject();
+    FirebaseJsonData res;
+    if (json.get(res, "maxCapacity")) maxCapacity = res.intValue;
+    if (json.get(res, "buzzerEnabled")) buzzerEnabled = res.boolValue;
+    if (json.get(res, "ledRed")) ledRedOverride = res.boolValue;
+    if (json.get(res, "ledGreen")) ledGreenOverride = res.boolValue;
+  } 
+  else if (path == "/maxCapacity") maxCapacity = data.intData();
+  else if (path == "/buzzerEnabled") buzzerEnabled = data.boolData();
+  else if (path == "/ledRed") ledRedOverride = data.boolData();
+  else if (path == "/ledGreen") ledGreenOverride = data.boolData();
+  else if (path == "/resetOccupancy") {
+    if (data.boolData()) {
+      occupancyCount = 0;
+      Serial.println("[COMMAND] Reset Occupancy");
+      Firebase.RTDB.setBoolAsync(&fbdo, "/controls/resetOccupancy", false);
+      Firebase.RTDB.setIntAsync(&fbdo, "/sensor/occupancy", 0);
+    }
+  } else if (path == "/remoteAdj") {
+    int adj = data.intData();
+    if (adj != 0) {
+      occupancyCount += adj;
+      if (occupancyCount < 0) occupancyCount = 0;
+      Serial.printf("[COMMAND] Adjust Occupancy by %d (New: %d)\n", adj, occupancyCount);
+      Firebase.RTDB.setIntAsync(&fbdo, "/controls/remoteAdj", 0); 
+      Firebase.RTDB.setIntAsync(&fbdo, "/sensor/occupancy", occupancyCount);
+    }
+  }
+  
+  handleAlerts(); // Force update actuators immediately
+}
+
+void streamTimeoutCallback(bool timeout) {
+  if (timeout) Serial.println("Stream timed out, resuming...");
+}
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("\n--- LibraryOS Production v3 ---");
+
+  // I2C Init on Custom Pins
+  Wire.begin(SDA_PIN, SCL_PIN);
+  lcd.init();
+  lcd.backlight();
+  lcd.print("System Starting");
+
+  pinMode(PIR_PIN, INPUT);
+  pinMode(TRIG1_PIN, OUTPUT);
+  pinMode(ECHO1_PIN, INPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+  pinMode(LED_RED_PIN, OUTPUT);
+  pinMode(LED_GREEN_PIN, OUTPUT);
+
+  dht.setup(DHT_PIN, DHTesp::DHT22);
+
+  // Offline-First connection
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  unsigned long wifiStart = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - wifiStart < 5000) {
+    delay(500); Serial.print(".");
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    isOnline = true;
+    config.api_key = API_KEY;
+    config.database_url = DATABASE_URL;
+    if (Firebase.signUp(&config, &auth, "", "")) {
+      Serial.println("Firebase Auth: Success");
+    } else {
+      Serial.printf("Firebase Auth Failed: %s\n", config.signer.signupError.message.c_str());
+    }
+    Firebase.begin(&config, &auth);
+    Firebase.reconnectWiFi(true);
+    
+    // Start Stream for Remote Controls
+    if (!Firebase.RTDB.beginStream(&fbdoStream, "/controls")) {
+      Serial.printf("Stream begin failed: %s\n", fbdoStream.errorReason().c_str());
+    } else {
+      Firebase.RTDB.setStreamCallback(&fbdoStream, streamCallback, streamTimeoutCallback);
+    }
+    
+    Serial.println("\nWiFi Connected");
+  } else {
+    Serial.println("\nRunning Offline");
+  }
+
+  beep(300); 
+}
+
+void loop() {
+  unsigned long now = millis();
+
+  handleOccupancy();
+  handleAlerts();
+
+  // Every 1 second: Read sensors
+  if (now - lastLocalSample >= 1000) {
+    TempAndHumidity data = dht.getTempAndHumidity();
+    if (dht.getStatus() == 0) { temperature = data.temperature; humidity = data.humidity; }
+    airQuality = analogRead(GAS_PIN);
+    
+    // Sampling Mic
+    unsigned int signalMax = 0, signalMin = 4095;
+    unsigned long micStart = millis();
+    while(millis() - micStart < 50) {
+      unsigned int sample = analogRead(MIC_PIN);
+      if (sample > signalMax) signalMax = sample;
+      if (sample < signalMin) signalMin = sample;
+    }
+    noiseLevel = signalMax - signalMin;
+
+    Serial.printf("[READ] T:%.1f Noise:%d Gas:%d Occ:%d\n", temperature, noiseLevel, airQuality, occupancyCount);
+    updateLCD();
+    lastLocalSample = now;
+  }
+
+  // Every 3 seconds: Cycle LCD Screen
+  if (now - lastScreenSwitch > 3000) {
+    currentLcdScreen = (currentLcdScreen + 1) % 3;
+    updateLCD();
+    lastScreenSwitch = now;
+  }
+
+  // Every 5 seconds: Firebase Sync
+  if (isOnline && (now - lastCloudSync >= 5000)) {
+    if (Firebase.ready()) {
+      FirebaseJson json;
+      json.set("temperature", temperature);
+      json.set("humidity", humidity);
+      json.set("noise", constrain(map(noiseLevel, NOISE_BASELINE, 200, 0, 100), 0, 100));
+      json.set("airQuality", constrain(map(airQuality, GAS_BASELINE, 2000, 0, 100), 0, 100));
+      json.set("occupancy", occupancyCount);
+      json.set("timestamp", now); // Add timestamp for connection check
+      Firebase.RTDB.setJSON(&fbdo, "/sensor", &json);
+      lastCloudSync = now;
+    }
+  }
 }
