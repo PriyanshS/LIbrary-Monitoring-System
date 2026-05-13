@@ -87,16 +87,19 @@ void handleAlerts() {
   
   // Master Priority Logic
   bool redState = ledRedOverride;
-  if (!ledRedOverride && sensorAlert) redState = true; 
-  
   bool greenState = ledGreenOverride;
-  if (!ledRedOverride && !ledGreenOverride && !sensorAlert) greenState = true;
+
+  // Auto Mode: If both overrides are OFF, use sensor logic
+  if (!ledRedOverride && !ledGreenOverride) {
+    redState = sensorAlert;
+    greenState = !sensorAlert;
+  }
 
   digitalWrite(LED_RED_PIN, redState ? HIGH : LOW);
   digitalWrite(LED_GREEN_PIN, greenState ? HIGH : LOW);
 
-  // Pulsed Buzzer (Manual Master Silence)
-  if (buzzerEnabled && sensorAlert) {
+  // Pulsed Buzzer for Alerts
+  if (sensorAlert) {
     if (millis() - lastPulseTime > 1000) {
       pulseState = !pulseState;
       digitalWrite(BUZZER_PIN, pulseState ? HIGH : LOW);
@@ -104,6 +107,8 @@ void handleAlerts() {
       lastPulseTime = millis();
     }
   } else {
+    // Note: Don't force LOW here if manual beep might be active, 
+    // but beep() uses delay() so it's fine.
     digitalWrite(BUZZER_PIN, LOW);
   }
 }
@@ -148,7 +153,7 @@ void sendData() {
   if (occupancyCount >= maxCapacity) comfort -= 30;
   Blynk.virtualWrite(V5, constrain(comfort, 0, 100));
   
-  Blynk.virtualWrite(V6, digitalRead(PIR_PIN));
+  Blynk.virtualWrite(V6, 0); // PIR Sync (Disabled)
   
   updateLCD();
 }
@@ -156,21 +161,21 @@ void sendData() {
 // ─── Occupancy Detection ──────────────────────────────────────
 void checkOccupancy() {
   unsigned long now = millis();
-  if (now - lastBuzzerAction < 1000) return; // Prevent buzzer loop
+  if (now - lastBuzzerAction < 1000) return; // Prevent buzzer feedback loops
 
   if (now - lastCountTime > 3000) {
-    if (digitalRead(PIR_PIN)) {
-      int samples = 0;
-      for(int i=0; i<3; i++) {
-        if (readDistance() <= DISTANCE_TRIGGER_CM) samples++;
-        delay(10);
-      }
-      if (samples >= 2) {
-        occupancyCount++;
-        beep(150);
-        lastCountTime = now;
-        Blynk.virtualWrite(V4, occupancyCount); // Immediate sync
-      }
+    // Refined Occupancy Logic: 10cm Ultrasonic Trigger (PIR Removed)
+    int samples = 0;
+    for(int i=0; i<3; i++) {
+      if (readDistance() <= DISTANCE_TRIGGER_CM) samples++;
+      delay(10);
+    }
+    
+    if (samples >= 2) {
+      occupancyCount++;
+      beep(150);
+      lastCountTime = now;
+      Blynk.virtualWrite(V4, occupancyCount); // Immediate sync to Blynk
     }
   }
 }
@@ -178,7 +183,7 @@ void checkOccupancy() {
 // ─── Blynk Handlers (Remote Controls) ───────────────────────
 
 BLYNK_WRITE(V7) { maxCapacity = param.asInt(); }
-BLYNK_WRITE(V8) { buzzerEnabled = param.asInt(); }
+BLYNK_WRITE(V8) { if (param.asInt() == 1) beep(200); }
 BLYNK_WRITE(V9) { ledRedOverride = param.asInt(); }
 BLYNK_WRITE(V10) { ledGreenOverride = param.asInt(); }
 BLYNK_WRITE(V11) { occupancyCount = 0; Blynk.virtualWrite(V4, 0); }
@@ -195,7 +200,7 @@ void setup() {
   Wire.begin(SDA_PIN, SCL_PIN);
   lcd.init(); lcd.backlight();
   
-  pinMode(PIR_PIN, INPUT);
+  // PIR pin set as input originally, removing it now
   pinMode(TRIG1_PIN, OUTPUT);
   pinMode(ECHO1_PIN, INPUT);
   pinMode(BUZZER_PIN, OUTPUT);
